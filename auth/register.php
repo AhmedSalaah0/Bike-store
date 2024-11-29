@@ -49,7 +49,7 @@ try {
         $stmt->bindParam(':phone_number', $phone_number, PDO::PARAM_STR);
 
         $stmt->execute();
-        echo "Registration Successful!";
+        echo json_encode(["error" => "Registration Successful!"]);
         exit();
     
     }
