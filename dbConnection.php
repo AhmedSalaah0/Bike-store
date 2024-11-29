@@ -1,4 +1,3 @@
-<!-- Dbconnection -->
 <?php
 
 $dsn = "mysql:";
