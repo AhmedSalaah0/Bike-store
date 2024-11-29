@@ -1,6 +1,11 @@
 <?php
 include __DIR__ . '/../dbConnection.php';
 
+header("Access-Control-Allow-Origin: *"); 
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS"); 
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); 
+header("Content-Type: application/json"); 
+
 $name = htmlspecialchars(strip_tags($_POST['name']));
 $email = htmlspecialchars(strip_tags($_POST['email']));
 $password = htmlspecialchars(strip_tags($_POST['password']));
