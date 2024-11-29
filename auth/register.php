@@ -10,7 +10,7 @@ $phone_number = htmlspecialchars(strip_tags($_POST['phone_number']));
 if ($password != $password2)
 {
     http_response_code(401);
-    echo json_encode(['Error' => 'Passwords Not Match']);
+    echo json_encode(['error' => 'Passwords Not Match']);
     exit;
 }
 
@@ -26,7 +26,7 @@ try {
     if ($user)
     {
         http_response_code(404);
-        echo json_encode(['Error' => 'Email Is Registered']);
+        echo json_encode(['error' => 'Email Is Registered']);
         exit();
     }
 
