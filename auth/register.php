@@ -1,47 +1,56 @@
 <?php
+// dbConnection.php: include your database connection code here
+
 include __DIR__ . '/../dbConnection.php';
 
-$name = htmlspecialchars(strip_tags($_POST['name']));
+// Check if the form data is valid
+if (!isset($_POST['username'], $_POST['email'], $_POST['password'], $_POST['password2'])) {
+    http_response_code(400); // Bad Request
+    echo json_encode(['Error' => 'Invalid request payload']);
+    exit();
+}
+
+$username = htmlspecialchars(strip_tags($_POST['username']));
 $email = htmlspecialchars(strip_tags($_POST['email']));
 $password = htmlspecialchars(strip_tags($_POST['password']));
-$phone_number = htmlspecialchars(strip_tags($_POST['phone_number']));
+$password2 = htmlspecialchars(strip_tags($_POST['password2']));
 
-try{
-    
-    $stmt = $con->prepare("SELECT * from customers where email = :email");
-    $stmt->bindParam(':email', $email, PDO::PARAM_STR); 
+if ($password !== $password2) {
+    echo json_encode(['Error' => 'Passwords do not match']);
+    exit();
+}
 
+try {
+    // Check if email is already registered
+    $stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
+    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
     $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $user = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    
-    if ($user)
-    {
-        http_response_code(404);
-        echo json_encode(['Error' => 'Email Is Registered']);
+    if ($user) {
+        http_response_code(409); // Conflict
+        echo json_encode(['Error' => 'Email is already registered']);
         exit();
-    }
-
-    else
-    {
+    } else {
+        // Hash the password
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Insert new user data
         $stmt = $con->prepare(
-            "INSERT INTO customers (name, email, password, phone_number) 
-            VALUES (:name, :email, :password, :phone_number)"
+            "INSERT INTO customers (username, email, password) 
+            VALUES (:username, :email, :password)"
         );
-        
-        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+        $stmt->bindParam(':username', $username, PDO::PARAM_STR);
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
-        $stmt->bindParam(':phone_number', $phone_number, PDO::PARAM_STR);
 
         $stmt->execute();
-        echo "Registration Successful!";
-        exit();
-    
+        http_response_code(201); // Created
+        echo json_encode(['Message' => 'Registration successful']);
     }
-}catch(PDOException $EX)
-{
-    echo $EX->getMessage();
+} catch (PDOException $ex) {
+    // Handle error
+    http_response_code(500); // Internal Server Error
+    echo json_encode(['Error' => 'Database error: ' . $ex->getMessage()]);
 }
+?>
