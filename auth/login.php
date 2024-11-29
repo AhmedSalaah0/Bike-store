@@ -1,6 +1,11 @@
 <?php
 include "../dbConnection.php";
 
+header("Access-Control-Allow-Origin: *"); 
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS"); 
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); 
+header("Content-Type: application/json"); 
+
 if (isset($_POST['email']) && isset($_POST['password'])) {
     $email = $_POST['email'];
     $password = $_POST['password'];
