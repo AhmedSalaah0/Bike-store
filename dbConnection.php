@@ -1,6 +1,6 @@
 <?php
 
-$dsn = "mysql:";
+$dsn = "mysql";
 $user = "";
 $Pwd='';
 $option = array (
