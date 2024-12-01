@@ -36,4 +36,4 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
 } else {
     echo json_encode(["error" => "Email or password not provided"]);
 }
-?>
+
