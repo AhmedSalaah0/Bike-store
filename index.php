@@ -19,5 +19,5 @@ if (array_key_exists($request, $allowed_routes)) {
     require __DIR__ . $allowed_routes[$request];
 } else {
     http_response_code(404);
-    require __DIR__ . '/errors/404.php';
+    echo "404 Error";
 }
