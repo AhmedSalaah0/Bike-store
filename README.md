@@ -16,6 +16,7 @@ Bike-Store API Using PHP and Mysql
 | `last_name` | `string` | **Required**. user last_name   |
 | `email`     | `string` | **Required**. Registered email |
 | `password`  | `string` | **Required**. email password   |
+| `password2`  | `string` | **Required**. confirm Password   |
 | `phone_number`  | `string` | **Required**. user phone_number |
 
 #### login
