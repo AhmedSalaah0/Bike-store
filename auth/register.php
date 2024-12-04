@@ -1,10 +1,15 @@
 <?php
 include __DIR__ . '/../dbConnection.php';
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("HTTP/1.1 200 OK");
+    exit();
+}
+
 
 if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
     $first_name = htmlspecialchars(strip_tags($_POST['first_name'] ?? ''));
@@ -26,15 +31,17 @@ else {
     $phone_number = htmlspecialchars(strip_tags($UserData['phone_number'] ?? ''));
 }
 
-
-    // if (!preg_match('/^[0-9]{10}$/', $phone_number)) {
-    //     http_response_code(400);
-    //     echo json_encode(['error' => 'Invalid Phone Number']);
-    //     exit();
-    // }}
+if (!preg_match('/^[0-9]{11}$/', $phone_number)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid Phone Number']);
+    exit();
+}
 
 if (!$first_name || !$last_name || !$email || !$password || !$phone_number) {
-    throw new Exception(json_encode(["error" => "Data is not Completed"]));
+    //throw new Exception(json_encode(["error" => "Data is not Completed"]));
+    echo json_encode(['error' => 'Invalid Data']);
+    http_response_code(400);
+    exit();
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -46,13 +53,13 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 if ($password != $password2) {
     echo json_encode(['error' => 'Passwords Do Not Match']);
     http_response_code(400);
-    exit;
+    exit();
 }
 
 if (strlen($password) < 8) {
     echo json_encode(['error' => 'Password must be at least 8 characters']);
     http_response_code(400);
-    exit();
+    exit(); 
 }
 
 try {
@@ -60,21 +67,25 @@ try {
     $stmt->bindParam(':email', $email, PDO::PARAM_STR);
     $stmt->execute();
 
-    $user = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
         echo json_encode(['error' => 'Email Is Already Registered']);
         http_response_code(409);
         exit();
     } else {
+        include __DIR__ .'/generateToken.php';
+        $token = $verification_token;
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $con->prepare("INSERT INTO customers (first_name, last_name, email, password, phone_number) VALUES (:first_name,:last_name, :email, :password, :phone_number)");
+        $stmt = $con->prepare("INSERT INTO customers (first_name, last_name, email, password, phone_number, verification_token) VALUES (:first_name,:last_name, :email, :password, :phone_number, :verification_token)");
         $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
         $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
         $stmt->bindParam(':phone_number', $phone_number, PDO::PARAM_STR);
-
+        $stmt->bindParam(':verification_token', $token, PDO::PARAM_STR);
+        require __DIR__ . '/../smtp/sendEmail.php';
+        sendVerificationEmail($email, $first_name, $last_name, $verification_link);
         $stmt->execute();
 
         http_response_code(201);
