@@ -1,15 +1,19 @@
 <IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Origin "http://127.0.0.1:5501"
     Header set Access-Control-Allow-Methods "POST, GET, OPTIONS"
     Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    Header set Access-Control-Allow-Credentials "true"
 </IfModule>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /restApi/
+    RewriteBase /bike-store/
 
-    # Redirect all requests to index.php
+    # Redirect /src/auth/register to /bike-store/src/auth/register.php
+    RewriteRule ^src/auth/register$ src/auth/register.php [L,QSA]
+
+    # Redirect all other requests to src/index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php [L,QSA]
+    RewriteRule ^(.*)$ src/index.php [L,QSA]
 </IfModule>
