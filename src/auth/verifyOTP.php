@@ -2,7 +2,7 @@
 
 include __DIR__ . '/../database/dbConnection.php';
 
-header("Access-Control-Allow-Origin: http://127.0.0.1:5501");
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
