@@ -15,7 +15,7 @@ function sendVerificationEmail($email, $first_name, $last_name, $verification_li
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
-        $mail->setFrom('Sender@domain.com', 'Ahmed Salah');
+        $mail->setFrom('Sender@domain.com', 'Sender Name');
         $mail->addAddress($email, $first_name . ' ' . $last_name);
 
         $mail->isHTML(true);
