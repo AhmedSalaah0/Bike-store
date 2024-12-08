@@ -18,9 +18,7 @@ if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
     $password = htmlspecialchars(strip_tags($_POST['password'] ?? ''));
     $password2 = htmlspecialchars(strip_tags($_POST['password2'] ?? ''));
     $phone_number = htmlspecialchars(strip_tags($_POST['phone_number'] ?? ''));
-}
-    
-else {
+} else {
     $UserData = json_decode(file_get_contents('php://input'), true);
 
     $first_name = htmlspecialchars(strip_tags($UserData['first_name'] ?? ''));
@@ -74,7 +72,7 @@ try {
         http_response_code(409);
         exit();
     } else {
-        include __DIR__ .'/generateToken.php';
+        include __DIR__ . '/generateToken.php';
         $token = $verification_token;
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $con->prepare("INSERT INTO customers (first_name, last_name, email, password, phone_number, verification_token) VALUES (:first_name,:last_name, :email, :password, :phone_number, :verification_token)");
