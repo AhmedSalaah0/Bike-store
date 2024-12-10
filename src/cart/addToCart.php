@@ -18,31 +18,22 @@ $inputData = file_get_contents('php://input');
 $userData = json_decode($inputData, true);
 
 $customer_id = htmlspecialchars(strip_tags($userData['customer_id'] ?? ''));
+$product_id = htmlspecialchars(strip_tags($userData['product_id'] ?? ''));
 $product_name = htmlspecialchars(strip_tags($userData['product_name'] ?? ''));
 $quantity = htmlspecialchars(strip_tags($userData['quantity'] ?? ''));
 
-// query to get the product_id using the product_name (product_name may be duplicated and will through an exception)
-try {
-    $stmt = $con->prepare("SELECT product_id FROM products WHERE product_name = :product_name");
-    $stmt->bindParam(":product_name", $product_name, PDO::PARAM_STR);
-    $stmt->execute();
-} catch (PDOException $e) {
-    echo "database error: " . $e->getMessage();
-}
-
-$product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-$product_id = $product['product_id'];
+$cartId = -1;
 try {
     // selecting cart_id from cart table and fetch it in $cart variable
     $stmt = $con->prepare("SELECT cart_id FROM cart WHERE customer_id = :customer_id");
     $stmt->bindParam(":customer_id", $customer_id, PDO::PARAM_INT);
     $stmt->execute();
+    $cart = $stmt->fetch(PDO::FETCH_ASSOC);
+    $cartId = $cart['cart_id'];
 } catch (PDOException $e) {
-    echo "database error: " . $e->getMessage();
+    http_response_code(500);
+    echo json_encode(["error" => "database error" . $e->getMessage()]);
 }
-$cart = $stmt->fetch(PDO::FETCH_ASSOC);
-$cartId = $cart['cart_id'];
 
 // check if the customer has no cart will create one and reassign the $cartId variable to the lastInsertId()
 // which is the newly created cart_id
@@ -53,11 +44,12 @@ if (empty($cart)) {
         $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
         $stmt->bindParam(':created_at', $currentDate, PDO::PARAM_STR);
         $stmt->execute();
+        $cartId = $con->lastInsertId();
+        echo json_encode(["message" => "a new cart was created"]);
     } catch (PDOException $e) {
-        echo "database error: " . $e->getMessage();
+        http_response_code(500);
+        echo json_encode(["error" => "database error" . $e->getMessage()]);
     }
-    $cartId = $con->lastInsertId();
-    echo json_encode(["message" => "a new cart was created"]);
 }
 
 try {
@@ -66,7 +58,6 @@ try {
     $stmt->bindParam(":product_id", $product_id, PDO::PARAM_INT);
     $stmt->execute();
     $stockData = $stmt->fetch(PDO::FETCH_ASSOC);
-
     $stock = $stockData['stock'];
     // if the quantity is enough just add it to the database
     if ($stock >= $quantity) {
@@ -89,5 +80,6 @@ try {
     }
     http_response_code(200);
 } catch (PDOException $e) {
-    echo "database error: " . $e->getMessage();
+    http_response_code(500);
+    echo json_encode(["error" => "database error" . $e->getMessage()]);
 }

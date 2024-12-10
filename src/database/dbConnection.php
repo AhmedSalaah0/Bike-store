@@ -3,18 +3,15 @@
 // Add your own database Connection
 $dsn = "mysql:host=localhost;dbname=bikeStore;";
 $user = "root";
-$Pwd='';
-$option = array (
+$Pwd = '';
+$option = array(
     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES UTF8"
 );
-try{
+try {
     $con = new PDO($dsn, $user, $Pwd, $option);
 
     $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-}
-catch (PDOException $ex)
-{
+} catch (PDOException $ex) {
     echo $ex->getMessage();
 }
-
