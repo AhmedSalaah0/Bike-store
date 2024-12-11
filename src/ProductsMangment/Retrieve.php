@@ -17,7 +17,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt->bindParam("category", $category, PDO::PARAM_STR);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($result);
+        $products = array_map(function($result) {
+            return [
+                "product_id" => $result['product_id'],
+                'prodict_name'=> $result['product_name'],
+                "category" => $result["category"],
+                "old_price" => $result["old_price"],
+                "new_price"=> $result["new_price"],
+                "details" => $result["details"],
+                "description"=> $result["description"],
+                "image"=> $result["image"],
+                "stock" => $result['stock'],
+            ];
+        }, $result);
+        echo json_encode([
+            'products'=> $products,
+        ]);
         http_response_code(200);
         exit();
     } catch (PDOException $e) {
