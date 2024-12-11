@@ -92,9 +92,16 @@ try {
         $stmt->bindParam(":product_id", $product_id, PDO::PARAM_INT);
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row['quantity'] > 0)
+        
+        if ($row && $row['quantity'] > 0)
         {
             $newQuantity = $row['quantity'] + $quantity;
+            if ($newQuantity > $stock)
+            {
+                http_response_code(400);
+                echo json_encode(["message" => "quantity exceeds stock"]);
+                exit();
+            }
             $stmt = $con->prepare("UPDATE cart_items SET quantity = :quantity WHERE cart_id = :cart_id AND product_id = :product_id");
             $stmt->bindParam(":quantity", $newQuantity, PDO::PARAM_INT);
             $stmt->bindParam(":cart_id", $cartId, PDO::PARAM_INT);
