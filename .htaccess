@@ -1,5 +1,5 @@
 <IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Origin "http://localhost:5501"
     Header set Access-Control-Allow-Methods "POST, GET, OPTIONS"
     Header set Access-Control-Allow-Headers "Content-Type, Authorization"
     Header set Access-Control-Allow-Credentials "true"
