@@ -1,37 +1,38 @@
 <?php
 
+require_once __DIR__ . '/../../vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-require_once __DIR__ . '/../../vendor/autoload.php';
 
 class JwtHandler
 {
-    private $secretKey;
+    private $JWTsecret;
+    private $refreshSecret;
 
     public function __construct()
     {
         $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . "/../../");
         $dotenv->load();
-
-        $this->secretKey = $_ENV['JWT_SECRET'];
+        $this->JWTsecret = $_ENV['JWT_SECRET'];
+        $this->refreshSecret = $_ENV['refresh_token_secret'];
     }
 
-    public function generateToken(array $data, int $expiration = 3600): string
+    public function generateToken(array $data, int $expiration = 3600, string $tokenType = 'access'): string
     {
         $issuedAt = time();
         $payload = [
             'iat' => $issuedAt,
             'exp' => $issuedAt + $expiration,
             'iss' => $_SERVER['SERVER_NAME'],
-            'data' => $data
+            'data' => array_merge($data, ['token_type' => $tokenType])
         ];
 
-        return JWT::encode($payload, $this->secretKey, 'HS256');
+        $secret = $tokenType === 'access' ? $this->JWTsecret : $this->refreshSecret;
+        return JWT::encode($payload, $secret, 'HS256');
     }
 
-
-    public function verifyToken(string $token): object
+    public function verifyToken(string $token, string $secret): object
     {
-        return JWT::decode($token, new Key($this->secretKey, 'HS256'));
+        return JWT::decode($token, new Key($secret, 'HS256'));
     }
 }

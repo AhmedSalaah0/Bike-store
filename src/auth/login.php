@@ -25,6 +25,7 @@ if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
         echo json_encode(['error' => 'Invalid data format']);
         exit();
     }
+
     $email = htmlspecialchars(strip_tags($userData['email'] ?? ''));
     $password = htmlspecialchars(strip_tags($userData['password'] ?? ''));
     $JWT = $userData['token'] ?? '';
@@ -33,7 +34,12 @@ if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
 if (!empty($JWT)) {
     try {
         $jwtHandler = new JwtHandler();
-        $decoded = $jwtHandler->verifyToken($JWT);
+        $decoded = $jwtHandler->verifyToken($JWT, $_ENV['JWT_SECRET']);
+        if ($decoded->data->token_type !== 'access') {
+           http_response_code(401);
+           echo json_encode(['error'=> 'Unauthorized']);
+           exit();
+        }
         http_response_code(200);
             echo json_encode([
             'message' => 'Token is valid',
@@ -65,6 +71,7 @@ try {
 
     if ($user && password_verify($password, $user['password'])) {
         if ($user['is_verified'] == 1) {
+
             $jwtHandler = new JwtHandler();
 
             $userData =[
@@ -74,12 +81,13 @@ try {
             ];
 
             $token = $jwtHandler->generateToken($userData);
+            
             $refreshTokenPayload = [
                 'iat' => time(),
                 'exp' => time() + (7 * 24 * 60 * 60),
                 'data' => ['user_id' => $user['customer_id']]
             ];
-            $refreshToken = JWT::encode($refreshTokenPayload, $_ENV['JWT_SECRET'], 'HS256');
+            $refreshToken = $jwtHandler->generateToken($refreshTokenPayload, 3600 * 24 * 7 ,  'refresh');
             
 
             http_response_code(200);
