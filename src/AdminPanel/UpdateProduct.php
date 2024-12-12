@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     
     if ($image) {
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxImageSize = 1024 * 1024 * 5; // 5MB
         $uploadDir = __DIR__ . '/../uploads/';
 
