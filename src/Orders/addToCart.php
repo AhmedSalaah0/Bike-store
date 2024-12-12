@@ -56,7 +56,7 @@ try {
     $cartId = $cart['cart_id'];
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "database error" . $e->getMessage()]);
+    echo json_encode(["error" => "database error: " . $e->getMessage()]);
 }
 
 // check if the customer has no cart will create one and reassign the $cartId variable to the lastInsertId()
@@ -72,7 +72,7 @@ if (empty($cart)) {
         echo json_encode(["message" => "a new cart was created"]);
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(["error" => "database error" . $e->getMessage()]);
+        echo json_encode(["error" => "database error: " . $e->getMessage()]);
     }
 }
 
@@ -135,5 +135,5 @@ try {
     http_response_code(200);
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "database error" . $e->getMessage()]);
+    echo json_encode(["error" => "database error: " . $e->getMessage()]);
 }

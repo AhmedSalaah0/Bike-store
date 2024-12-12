@@ -55,7 +55,7 @@ $cart_id = $Data['cart_id'];
     
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // fetching a column using array_column method to return all products and its quantity in cart
+    // fetching a column using array_map method to return all products and its quantity in cart
     $cartItems = array_map(function($row) {
         return [
             "product_id" => $row['product_id'],
