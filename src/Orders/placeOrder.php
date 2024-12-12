@@ -9,10 +9,12 @@ use Firebase\JWT\Key;
 
 $inputData = file_get_contents('php://input');
 
-$userData = json_decode($inputData, true);
+$Data = json_decode($inputData, true);
 
-$JWT = $userData['token'];
-
+$JWT = $Data['token'];
+$order_date = date("Y-m-d");
+$address = $Data['address'] ?? ''; 
+$payment_method = $Data['payment_method'] ?? ''; 
 if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
@@ -24,6 +26,11 @@ if (!empty($JWT)) {
             echo json_encode(['error'=> $e->getMessage()]);
             exit();
         }
+}
+if (!$address || !$payment_method) {
+    http_response_code(400);
+    echo json_encode(['error'=> 'Data Is Required']);
+    exit();
 }
 
 try {
@@ -47,16 +54,25 @@ try {
             $stmt->bindParam(':product_id', $item['product_id']);
             $stmt->execute();
         }
-        $total = $item['new_price'] * $item['quantity'];
+        $total_price = $item['new_price'] * $item['quantity'];
         $cartItems[] = [
             "product_id" => $item['product_id'],
             "quantity" => $item['quantity'],
-            "total price" => $total 
+            "total_price" => $total_price 
         ];
     }
 
+    
+    
+    // Insert the order into the orders table
+    $stmt = $con->prepare('INSERT INTO orders (customer_id, order_date, address, payment_method, total_price) VALUES (:customer_id, :order_date, :address, :payment_method, :total_price)');
+    $stmt->bindParam(':customer_id', $customer_id);
+    $stmt->bindParam(':order_date', $order_date);
+    $stmt->bindParam(':address', $address);
+    $stmt->bindParam(':payment_method', $payment_method);
+    $stmt->bindParam(':total_price', $total_price);
+    $stmt->execute();
     echo json_encode(["Order Items" => $cartItems]);
-    $stmt = $con-> prepare("insert into O");
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error'=> $e->getMessage()]);
