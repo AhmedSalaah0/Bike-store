@@ -13,10 +13,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     try {
         $category = $_GET['category'];
+        if ($category === "all")
+        {
+            $stmt = $con->prepare("SELECT * FROM products");
+            $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        else
+        {
         $stmt = $con->prepare("SELECT * FROM products where category = :category");
         $stmt->bindParam("category", $category, PDO::PARAM_STR);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         $products = array_map(function($result) {
             return [
                 "product_id" => $result['product_id'],
