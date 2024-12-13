@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
         try {
-            $stmt = $con->prepare("INSERT INTO `products` (`product_name`, `catagory`,
+            $stmt = $con->prepare("INSERT INTO `products` (`product_name`, `category`,
             `old_price`, `new_price`, `details`, `description`, `image`)
             values (:product_name, :catagory, :old_price,
             :new_price, :details, :description, :image)");

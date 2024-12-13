@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve input data
     $product_id = $_POST['product_id'] ?? '';
     $product_name = $_POST['product_name'] ?? '';
-    $catagory = $_POST['category'] ?? '';
+    $category = $_POST['category'] ?? '';
     $old_price = $_POST['old_price'] ?? '';
     $new_price = $_POST['new_price'] ?? '';
     $details = $_POST['details'] ?? '';
@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $image = $_FILES['image'] ?? null;
 
     // Validate required fields
-    if ( !$product_name ||!$product_id || !$catagory || !$old_price || !$new_price || !$details || !$description) {
-        echo json_encode(['values' => "product_id: $product_id\n product_name: $product_name\n catagory: $catagory \n old_price: $old_price \n new_price: $new_price \n 
+    if ( !$product_name ||!$product_id || !$category || !$old_price || !$new_price || !$details || !$description) {
+        echo json_encode(['values' => "product_id: $product_id\n product_name: $product_name\n category: $category \n old_price: $old_price \n new_price: $new_price \n 
         details: $details \n description: $description"]);
     
         // http_response_code(400);
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     
     if ($image) {
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxImageSize = 1024 * 1024 * 5; // 5MB
         $uploadDir = __DIR__ . '/../uploads/';
 
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $con->prepare(
             'UPDATE products 
             SET product_name = :product_name, 
-                catagory = :catagory, 
+                category = :category, 
                 old_price = :old_price, 
                 new_price = :new_price, 
                 details = :details, 
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         $stmt->bindParam(':product_name', $product_name, PDO::PARAM_STR);
-        $stmt->bindParam(':catagory', $catagory, PDO::PARAM_STR);
+        $stmt->bindParam(':category', $category, PDO::PARAM_STR);
         $stmt->bindParam(':old_price', $old_price, PDO::PARAM_STR);
         $stmt->bindParam(':new_price', $new_price, PDO::PARAM_STR);
         $stmt->bindParam(':details', $details, PDO::PARAM_STR);
@@ -143,14 +143,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['error' => 'Invalid request method']);
     exit();
 }
-/*
-"{\"values\":\"product_id: 1
- product_name: bike
- catagory: electric 
-  old_price: 50 
-   new_price: 45  \\r
-    details: a good bike 
-     description: \"}
-     {\"error\":\"All fields are required\"}"
-
-*/
