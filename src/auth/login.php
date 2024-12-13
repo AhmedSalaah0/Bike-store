@@ -36,9 +36,9 @@ if (!empty($JWT)) {
         $jwtHandler = new JwtHandler();
         $decoded = $jwtHandler->verifyToken($JWT, $_ENV['JWT_SECRET']);
         if ($decoded->data->token_type !== 'access') {
-           http_response_code(401);
-           echo json_encode(['error'=> 'Unauthorized']);
-           exit();
+            http_response_code(401);
+            echo json_encode(['error'=> 'Unauthorized']);
+            exit();
         }
         http_response_code(200);
             echo json_encode([
@@ -96,6 +96,7 @@ try {
                 'access_token' => $token, // Access token
                 'refresh_token' => $refreshToken // Refresh token
             ]);
+            
             setcookie(
                 'refresh_token',   // Cookie name
                 $refreshToken,     // Cookie value

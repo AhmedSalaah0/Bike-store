@@ -1,4 +1,5 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:5501");
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 use Firebase\JWT\JWT;
@@ -17,7 +18,7 @@ class JwtHandler
         $this->refreshSecret = $_ENV['refresh_token_secret'];
     }
 
-    public function generateToken(array $data, int $expiration = 3600, string $tokenType = 'access'): string
+    public function generateToken(array $data, int $expiration = 10, string $tokenType = 'access'): string
     {
         $issuedAt = time();
         $payload = [
@@ -26,7 +27,6 @@ class JwtHandler
             'iss' => $_SERVER['SERVER_NAME'],
             'data' => array_merge($data, ['token_type' => $tokenType])
         ];
-
         $secret = $tokenType === 'access' ? $this->JWTsecret : $this->refreshSecret;
         return JWT::encode($payload, $secret, 'HS256');
     }

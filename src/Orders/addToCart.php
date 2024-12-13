@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -37,7 +38,7 @@ if ($quantity <= 0)
 if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
-        $decoded = $handler->verifyToken($JWT);
+        $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
         $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
         $user_id = $userData->data->user_id;
         } catch (Exception $e) {
