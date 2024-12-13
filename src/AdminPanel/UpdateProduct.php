@@ -143,14 +143,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['error' => 'Invalid request method']);
     exit();
 }
-/*
-"{\"values\":\"product_id: 1
- product_name: bike
- catagory: electric 
-  old_price: 50 
-   new_price: 45  \\r
-    details: a good bike 
-     description: \"}
-     {\"error\":\"All fields are required\"}"
-
-*/
