@@ -13,12 +13,12 @@ include __DIR__ . '/../database/dbConnection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve input data
-    $product_name = $_POST['product_name'] ?? '';
-    $catagory = $_POST['category'] ?? '';
-    $old_price = $_POST['old_price'] ?? '';
-    $new_price = $_POST['new_price'] ?? '';
-    $details = $_POST['details'] ?? '';
-    $description = $_POST['description'] ?? '';
+    $product_name = htmlspecialchars(strip_tags($_POST['product_name'] ?? ''));
+    $catagory = htmlspecialchars(strip_tags($_POST['category'] ?? ''));
+    $old_price = htmlspecialchars(strip_tags($_POST['old_price'] ?? ''));
+    $new_price = htmlspecialchars(strip_tags($_POST['new_price'] ?? ''));
+    $details = htmlspecialchars(strip_tags($_POST['details'] ?? ''));
+    $description = htmlspecialchars(strip_tags($_POST['description'] ?? ''));
     $image = $_FILES['image'] ?? null;
 
     // Validate required fields
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'Database error: '. $e->getMessage()]);
+            echo json_encode(['error' => 'Database error']);
             exit();
         }
 }

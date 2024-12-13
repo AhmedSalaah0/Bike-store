@@ -12,24 +12,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 include __DIR__ . '/../database/dbConnection.php';
 
 
-$product_id = json_decode(file_get_contents('php://input'), true);
-
-if (!$product_id)
-{
+$inputData = json_decode(file_get_contents('php://input'), true);
+$product_id = htmlspecialchars(strip_tags($inputData['product_id']));
+if (!$inputData) {
     http_response_code(400);
     echo json_encode(['error' => 'Product_id Is Required']);
     exit();
 }
 
 try {
-    $stmt = $con->prepare('SELECT * from products WHERE product_id = :product_id');
+    $stmt = $con->prepare('SELECT * FROM products WHERE product_id = :product_id');
     $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$result)
-    {
+    if (!$result) {
         // http_response_code(400);
-        echo json_encode(['error'=> 'Wrond Product_id']);
+        echo json_encode(['error' => 'Wrong Product_id']);
         exit();
     }
     echo json_encode($result);
@@ -37,6 +35,6 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error'=> $e->getMessage()]);
+    echo json_encode(['error' => 'database error']);
     exit();
 }

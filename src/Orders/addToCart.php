@@ -21,14 +21,12 @@ $userData = json_decode($inputData, true);
 $JWT = $userData['token'] ?? '';
 $product_id = htmlspecialchars(strip_tags($userData['product_id'] ?? ''));
 $quantity = htmlspecialchars(strip_tags($userData['quantity'] ?? ''));
-if (!$product_id)
-{
+if (!$product_id) {
     http_response_code(400);
     echo json_encode(['error' => 'Product_id Is Required']);
     exit();
 }
-if ($quantity <= 0)
-{
+if ($quantity <= 0) {
     http_response_code(400);
     echo json_encode(['error' => 'Quantity should be greater than 0']);
     exit();
@@ -40,11 +38,11 @@ if (!empty($JWT)) {
         $decoded = $handler->verifyToken($JWT);
         $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
         $user_id = $userData->data->user_id;
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error'=> $e->getMessage()]);
-            exit();
-        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'database error']);
+        exit();
+    }
 }
 $cartId = -1;
 try {
@@ -56,7 +54,7 @@ try {
     $cartId = $cart['cart_id'];
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "database error" . $e->getMessage()]);
+    echo json_encode(["error" => "database error"]);
 }
 
 // check if the customer has no cart will create one and reassign the $cartId variable to the lastInsertId()
@@ -72,7 +70,7 @@ if (empty($cart)) {
         echo json_encode(["message" => "a new cart was created"]);
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(["error" => "database error" . $e->getMessage()]);
+        echo json_encode(["error" => "database error"]);
     }
 }
 
@@ -91,12 +89,10 @@ try {
         $stmt->bindParam(":product_id", $product_id, PDO::PARAM_INT);
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($row && $row['quantity'] > 0)
-        {
+
+        if ($row && $row['quantity'] > 0) {
             $newQuantity = $row['quantity'] + $quantity;
-            if ($newQuantity > $stock)
-            {
+            if ($newQuantity > $stock) {
                 http_response_code(400);
                 echo json_encode(["message" => "quantity exceeds stock"]);
                 exit();
@@ -108,15 +104,12 @@ try {
             $stmt->execute();
             echo json_encode(["message" => "product quantity updated in cart successfully"]);
         } else {
-        
-
-
-        $stmt = $con->prepare("INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (:cart_id, :product_id, :quantity)");
-        $stmt->bindParam(":cart_id", $cartId, PDO::PARAM_INT);
-        $stmt->bindParam(":product_id", $product_id, PDO::PARAM_INT);
-        $stmt->bindParam(":quantity", $quantity, PDO::PARAM_INT);
-        $stmt->execute();
-        echo json_encode(["message" => "product added to cart successfully"]);
+            $stmt = $con->prepare("INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (:cart_id, :product_id, :quantity)");
+            $stmt->bindParam(":cart_id", $cartId, PDO::PARAM_INT);
+            $stmt->bindParam(":product_id", $product_id, PDO::PARAM_INT);
+            $stmt->bindParam(":quantity", $quantity, PDO::PARAM_INT);
+            $stmt->execute();
+            echo json_encode(["message" => "product added to cart successfully"]);
         }
     } else {
         // check if it's out of stock or there's some of the product left
@@ -135,5 +128,5 @@ try {
     http_response_code(200);
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "database error" . $e->getMessage()]);
+    echo json_encode(["error" => "database error"]);
 }
