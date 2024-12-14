@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':new_price', $new_price, PDO::PARAM_INT);
             $stmt->bindParam(':details', $details , PDO::PARAM_STR);
             $stmt->bindParam(':description', $description, PDO::PARAM_STR);
-            $stmt->bindParam('image', $targetFilePath, PDO::PARAM_STR);
+            $stmt->bindParam('image', $targetFileName, PDO::PARAM_STR);
             $stmt->execute();
 
             http_response_code(201);

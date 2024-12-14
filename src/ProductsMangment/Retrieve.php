@@ -1,14 +1,15 @@
 <?php
-include __DIR__ . '/../database/dbConnection.php';
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5501");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, Category");
 header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+include __DIR__ . '/../database/dbConnection.php';
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     try {
@@ -26,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $products = array_map(function ($result) {
             return [
                 "product_id" => $result['product_id'],
-                'prodict_name' => $result['product_name'],
+                'product_name' => $result['product_name'],
                 "category" => $result["category"],
                 "old_price" => $result["old_price"],
                 "new_price" => $result["new_price"],
                 "details" => $result["details"],
                 "description" => $result["description"],
-                "image" => $result["image"],
+                "image" => 'http://localhost/bike-store/src/uploads/' . $result["image"],
                 "stock" => $result['stock'],
             ];
         }, $result);

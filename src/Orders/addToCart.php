@@ -1,5 +1,5 @@
 <?php
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5501");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -32,19 +33,19 @@ if ($quantity <= 0) {
     exit();
 }
 
+$user_id = null;
 if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
-        $decoded = $handler->verifyToken($JWT);
-        $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
-        $user_id = $userData->data->user_id;
+        $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
+        $user_id = $decoded->data->user_id;
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['error' => 'database error']);
         exit();
     }
 }
-$cartId = -1;
+
 try {
     // selecting cart_id from cart table and fetch it in $cart variable
     $stmt = $con->prepare("SELECT cart_id FROM carts WHERE customer_id = :user_id");
@@ -53,12 +54,10 @@ try {
     $cart = $stmt->fetch(PDO::FETCH_ASSOC);
     $cartId = $cart['cart_id'];
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(["error" => "database error"]);
+    // http_response_code(500);
+    echo json_encode(["error" => "database error "]);
 }
-
-// check if the customer has no cart will create one and reassign the $cartId variable to the lastInsertId()
-// which is the newly created cart_id
+$cartId = null;
 if (empty($cart)) {
     $currentDate = date("Y-m-d");
     try {
@@ -69,7 +68,7 @@ if (empty($cart)) {
         $cartId = $con->lastInsertId();
         echo json_encode(["message" => "a new cart was created"]);
     } catch (PDOException $e) {
-        http_response_code(500);
+        // http_response_code(500);
         echo json_encode(["error" => "database error"]);
     }
 }
@@ -93,7 +92,7 @@ try {
         if ($row && $row['quantity'] > 0) {
             $newQuantity = $row['quantity'] + $quantity;
             if ($newQuantity > $stock) {
-                http_response_code(400);
+                // http_response_code(400);
                 echo json_encode(["message" => "quantity exceeds stock"]);
                 exit();
             }
@@ -109,7 +108,7 @@ try {
             $stmt->bindParam(":product_id", $product_id, PDO::PARAM_INT);
             $stmt->bindParam(":quantity", $quantity, PDO::PARAM_INT);
             $stmt->execute();
-            echo json_encode(["message" => "product added to cart successfully"]);
+            echo json_encode(["message" => "product added to cart successfully $cartId"]);
         }
     } else {
         // check if it's out of stock or there's some of the product left
