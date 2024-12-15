@@ -22,6 +22,11 @@ if (!empty($JWT)) {
         $handler = new JwtHandler();
         $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
         $customer_id = $decoded->data->user_id;
+        if ($decoded->data->is_admin == true) {
+            http_response_code(404);
+            echo json_encode(['error' => 'User Is Administrator']);
+            exit();
+        }
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['error' => $e->getMessage()]);

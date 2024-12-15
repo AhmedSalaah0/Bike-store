@@ -36,7 +36,7 @@ try {
     FROM cart_items i 
     JOIN products p ON i.product_id = p.product_id 
     WHERE i.cart_id = (SELECT cart_id FROM carts WHERE customer_id = :customer_id)');
-    $stmt->bindParam(':customer_id', $customer_id);
+    $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
     $stmt->execute();
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -48,8 +48,8 @@ try {
             exit();
         } else {
             $stmt = $con->prepare('UPDATE products SET stock = stock - :quantity WHERE product_id = :product_id');
-            $stmt->bindParam(':quantity', $item['quantity']);
-            $stmt->bindParam(':product_id', $item['product_id']);
+            $stmt->bindParam(':quantity', $item['quantity'], PDO::PARAM_INT);
+            $stmt->bindParam(':product_id', $item['product_id'], PDO::PARAM_INT);
             $stmt->execute();
         }
         $total_price = $item['new_price'] * $item['quantity'];
@@ -63,23 +63,25 @@ try {
 
     // Insert the order into the orders table
     $stmt = $con->prepare('INSERT INTO orders (customer_id, order_date, address, payment_method, total_price) VALUES (:customer_id, :order_date, :address, :payment_method, :total_price)');
-    $stmt->bindParam(':customer_id', $customer_id);
-    $stmt->bindParam(':order_date', $order_date);
-    $stmt->bindParam(':address', $address);
-    $stmt->bindParam(':payment_method', $payment_method);
-    $stmt->bindParam(':total_price', $total_price);
+    $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+    $stmt->bindParam(':order_date', $order_date, PDO::PARAM_STR);
+    $stmt->bindParam(':address', $address, PDO::PARAM_STR);
+    $stmt->bindParam(':payment_method', $payment_method, PDO::PARAM_STR);
+    $stmt->bindParam(':total_price', $total_price, PDO::PARAM_INT);
     $stmt->execute();
     // insert the order items
+    $order_id = $con->lastInsertId();
     foreach ($items as $item) {
-    $stmt = $con->prepare('insert into order_items (`customer_id`, `product_id`, `quantity`) 
-    values (:customer_id, :product_id, :quantity)');
+    $stmt = $con->prepare('insert into order_items (`customer_id`, `order_id`, `product_id`, `quantity`) 
+    values (:customer_id, :order_id, :product_id, :quantity)');
     $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
-    $stmt->bindParam(':product_id', $item['product_id']);
-    $stmt->bindParam(':quantity', $item['quantity']);
+    $stmt->bindParam(':order_id', $order_id, PDO::PARAM_INT);
+    $stmt->bindParam(':product_id', $item['product_id'], PDO::PARAM_INT);
+    $stmt->bindParam(':quantity', $item['quantity'], PDO::PARAM_INT);
     $stmt->execute();
     }
 
-    //remove datafrom cart
+    //remove data from cart
     $stmt = $con->prepare('delete from cart_items where cart_id = (select cart_id from carts where customer_id = :customer_id)');
     $stmt->bindParam('customer_id', $customer_id);
     $stmt->execute();

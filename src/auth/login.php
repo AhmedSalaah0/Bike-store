@@ -70,11 +70,24 @@ try {
     $is_admin = false;
     if ($user) {
         $is_admin = true;
+        $userData = [
+            'user_id' => $user['Admin_id'],
+            'email' => $user['email'],
+            'is_admin' => $is_admin,
+        ];
     } else {
         $stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user) {
+            $userData = [
+                'user_id' => $user['customer_id'],
+                'email' => $user['email'],
+                'name' => $user['first_name'] . ' ' . $user['last_name'],
+                'is_admin' => $is_admin,
+            ];
+        }
     }
 
     if ($user && password_verify($password, $user['password'])) {
@@ -82,20 +95,14 @@ try {
 
             $jwtHandler = new JwtHandler();
 
-            $userData = [
-                'user_id' => $user['customer_id'],
-                'email' => $user['email'],
-                'name' => $user['first_name'] . ' ' . $user['last_name'],
-                'is_admin' => $is_admin,
-            ];
-
             $token = $jwtHandler->generateToken($userData);
 
             $refreshTokenPayload = [
                 'iat' => time(),
                 'exp' => time() + (7 * 24 * 60 * 60),
-                'data' => ['user_id' => $user['customer_id']]
-            ];
+                'data' => [ $is_admin ? ['Admin_id' =>  $user['Admin_id']] : ['user_id' => $user['customer_id']]
+                        ]            
+                    ];
             $refreshToken = $jwtHandler->generateToken($refreshTokenPayload, 3600 * 24 * 7, 'refresh');
 
         } else {
