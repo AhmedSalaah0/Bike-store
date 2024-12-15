@@ -15,6 +15,7 @@ include __DIR__ . '/../database/dbConnection.php';
 
 $inputData = json_decode(file_get_contents('php://input'), true);
 $product_id = htmlspecialchars(strip_tags($inputData['product_id']));
+
 if (!$product_id)
 {
     http_response_code(400);
