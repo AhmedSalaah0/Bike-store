@@ -4,8 +4,6 @@ header('Content-Type: application/json');
 include __DIR__ . '/../database/dbConnection.php';
 include __DIR__ . '/../auth/JWTHandler.php';
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 $inputData = file_get_contents('php://input');
 
@@ -19,8 +17,7 @@ if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
         $decoded = $handler->verifyToken($JWT);
-        $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
-        $customer_id = $userData->data->user_id;
+        $customer_id = $decoded->data->user_id;
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['error' => $e->getMessage()]);
