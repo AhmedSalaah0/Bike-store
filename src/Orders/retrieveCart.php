@@ -9,10 +9,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-
 include __DIR__ . "/../database/dbConnection.php";
 include __DIR__ . '/../auth/JWTHandler.php';
 

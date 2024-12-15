@@ -17,8 +17,12 @@ $inputData = file_get_contents('php://input');
 
 $cartItemData = json_decode($inputData, true);
 
-$cart_item_id = htmlspecialchars(strip_tags($cartItemData['cart_item_id'] ?? ''));
+$cart_item_id = (int)htmlspecialchars(strip_tags((string)($cartItemData['cart_item_id']) ?? ''));
 
+if (!$cart_item_id) {
+echo json_encode(['error' => 'Cart Item Id not found']);
+exit();
+}
 try {
     // query to delete the item from cart_items table
     $stmt = $con->prepare("DELETE FROM cart_items WHERE cart_item_id = :cart_item_id");

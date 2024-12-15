@@ -4,13 +4,12 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 include __DIR__ . '/../auth/JWTHandler.php';
 include __DIR__ . "/../database/dbConnection.php";
@@ -46,32 +45,36 @@ if (!empty($JWT)) {
     }
 }
 
+$cartId = null;
 try {
     // selecting cart_id from cart table and fetch it in $cart variable
     $stmt = $con->prepare("SELECT cart_id FROM carts WHERE customer_id = :user_id");
     $stmt->bindParam(":user_id", $user_id, PDO::PARAM_INT);
     $stmt->execute();
     $cart = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$cart) {
+        $currentDate = date("Y-m-d");
+        try {
+            $stmt = $con->prepare("INSERT INTO carts (customer_id, created_at) VALUES (:user_id, :created_at)");
+            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(':created_at', $currentDate, PDO::PARAM_STR);
+            $stmt->execute();
+            $cartId = $con->lastInsertId();
+            echo json_encode(["message" => "a new cart was created"]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(["error" => "database error"]);
+            exit();
+        }
+    }
     $cartId = $cart['cart_id'];
 } catch (PDOException $e) {
-    // http_response_code(500);
-    echo json_encode(["error" => "database error "]);
+    http_response_code(500);
+    echo json_encode(["error" => "database error"]);
+    exit();
 }
-$cartId = null;
-if (empty($cart)) {
-    $currentDate = date("Y-m-d");
-    try {
-        $stmt = $con->prepare("INSERT INTO cart (customer_id, created_at) VALUES (:user_id, :created_at)");
-        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-        $stmt->bindParam(':created_at', $currentDate, PDO::PARAM_STR);
-        $stmt->execute();
-        $cartId = $con->lastInsertId();
-        echo json_encode(["message" => "a new cart was created"]);
-    } catch (PDOException $e) {
-        // http_response_code(500);
-        echo json_encode(["error" => "database error"]);
-    }
-}
+
+
 
 try {
     // query to get the current quantity (stock) of the product
@@ -92,7 +95,7 @@ try {
         if ($row && $row['quantity'] > 0) {
             $newQuantity = $row['quantity'] + $quantity;
             if ($newQuantity > $stock) {
-                // http_response_code(400);
+                http_response_code(400);
                 echo json_encode(["message" => "quantity exceeds stock"]);
                 exit();
             }
