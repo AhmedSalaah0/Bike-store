@@ -18,7 +18,7 @@ $payment_method = $Data['payment_method'] ?? '';
 if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
-        $decoded = $handler->verifyToken($JWT);
+        $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
         $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
         $customer_id = $userData->data->user_id;
     } catch (Exception $e) {
@@ -61,8 +61,7 @@ try {
             "total_price" => $total_price
         ];
     }
-
-
+    echo json_encode(["Order Items" => $cartItems]);
 
     // Insert the order into the orders table
     $stmt = $con->prepare('INSERT INTO orders (customer_id, order_date, address, payment_method, total_price) VALUES (:customer_id, :order_date, :address, :payment_method, :total_price)');
@@ -72,9 +71,22 @@ try {
     $stmt->bindParam(':payment_method', $payment_method);
     $stmt->bindParam(':total_price', $total_price);
     $stmt->execute();
-    echo json_encode(["Order Items" => $cartItems]);
+    // insert the order items
+    foreach ($items as $item) {
+    $stmt = $con->prepare('insert into order_items (`customer_id`, `product_id`, `quantity`) 
+    values (:customer_id, :product_id, :quantity)');
+    $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+    $stmt->bindParam(':product_id', $item['product_id']);
+    $stmt->bindParam(':quantity', $item['quantity']);
+    $stmt->execute();
+    }
+
+    //remove datafrom cart
+    $stmt = $con->prepare('delete from cart_items where cart_id = (select cart_id from carts where customer_id = :customer_id)');
+    $stmt->bindParam('customer_id', $customer_id);
+    $stmt->execute();
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'database error']);
+    echo json_encode(['error' => 'database error'. $e->getMessage()]);
     exit();
 }
