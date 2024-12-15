@@ -4,8 +4,6 @@ header('Content-Type: application/json');
 include __DIR__ . '/../database/dbConnection.php';
 include __DIR__ . '/../auth/JWTHandler.php';
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 $inputData = file_get_contents('php://input');
 
@@ -13,23 +11,22 @@ $Data = json_decode($inputData, true);
 
 $JWT = $Data['token'];
 $order_date = date("Y-m-d");
-$address = $Data['address'] ?? ''; 
-$payment_method = $Data['payment_method'] ?? ''; 
+$address = $Data['address'] ?? '';
+$payment_method = $Data['payment_method'] ?? '';
 if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
         $decoded = $handler->verifyToken($JWT);
-        $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
-        $customer_id = $userData->data->user_id;
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error'=> $e->getMessage()]);
-            exit();
-        }
+        $customer_id = $decoded->data->user_id;
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+        exit();
+    }
 }
 if (!$address || !$payment_method) {
     http_response_code(400);
-    echo json_encode(['error'=> 'Data Is Required']);
+    echo json_encode(['error' => 'Data Is Required']);
     exit();
 }
 
@@ -46,7 +43,7 @@ try {
     foreach ($items as $item) {
         if ($item['stock'] < $item['quantity']) {
             http_response_code(400);
-            echo json_encode(['error'=> 'Not enough stock for item: '. $item['product_id']]);
+            echo json_encode(['error' => 'Not enough stock for item: ' . $item['product_id']]);
             exit();
         } else {
             $stmt = $con->prepare('UPDATE products SET stock = stock - :quantity WHERE product_id = :product_id');
@@ -58,12 +55,12 @@ try {
         $cartItems[] = [
             "product_id" => $item['product_id'],
             "quantity" => $item['quantity'],
-            "total_price" => $total_price 
+            "total_price" => $total_price
         ];
     }
 
-    
-    
+
+
     // Insert the order into the orders table
     $stmt = $con->prepare('INSERT INTO orders (customer_id, order_date, address, payment_method, total_price) VALUES (:customer_id, :order_date, :address, :payment_method, :total_price)');
     $stmt->bindParam(':customer_id', $customer_id);
@@ -75,6 +72,6 @@ try {
     echo json_encode(["Order Items" => $cartItems]);
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error'=> $e->getMessage()]);
+    echo json_encode(['error' => 'database error']);
     exit();
 }

@@ -25,6 +25,7 @@ if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
         echo json_encode(['error' => 'Invalid data format']);
         exit();
     }
+
     $email = htmlspecialchars(strip_tags($userData['email'] ?? ''));
     $password = htmlspecialchars(strip_tags($userData['password'] ?? ''));
     $JWT = $userData['token'] ?? '';
@@ -33,9 +34,14 @@ if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
 if (!empty($JWT)) {
     try {
         $jwtHandler = new JwtHandler();
-        $decoded = $jwtHandler->verifyToken($JWT);
+        $decoded = $jwtHandler->verifyToken($JWT, $_ENV['JWT_SECRET']);
+        if ($decoded->data->token_type !== 'access') {
+            http_response_code(401);
+            echo json_encode(['error' => 'Unauthorized']);
+            exit();
+        }
         http_response_code(200);
-            echo json_encode([
+        echo json_encode([
             'message' => 'Token is valid',
             'user' => $decoded->data // Return user data from the token
         ]);
@@ -57,60 +63,70 @@ if (!$email || !$password) {
 
 
 try {
-    $stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
+    $stmt = $con->prepare("SELECT * FROM admins WHERE email = :email");
     $stmt->bindParam(':email', $email, PDO::PARAM_STR);
     $stmt->execute();
-
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $is_admin = false;
+    if ($user) {
+        $is_admin = true;
+    } else {
+        $stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     if ($user && password_verify($password, $user['password'])) {
-        if ($user['is_verified'] == 1) {
+        if ($is_admin || $user['is_verified'] == 1) {
+
             $jwtHandler = new JwtHandler();
 
-            $userData =[
+            $userData = [
                 'user_id' => $user['customer_id'],
                 'email' => $user['email'],
-                'name' => $user['first_name'] . ' ' . $user['last_name']
+                'name' => $user['first_name'] . ' ' . $user['last_name'],
+                'is_admin' => $is_admin,
             ];
 
             $token = $jwtHandler->generateToken($userData);
+
             $refreshTokenPayload = [
                 'iat' => time(),
                 'exp' => time() + (7 * 24 * 60 * 60),
                 'data' => ['user_id' => $user['customer_id']]
             ];
-            $refreshToken = JWT::encode($refreshTokenPayload, $_ENV['JWT_SECRET'], 'HS256');
-            
+            $refreshToken = $jwtHandler->generateToken($refreshTokenPayload, 3600 * 24 * 7, 'refresh');
 
-            http_response_code(200);
-            echo json_encode([
-                'message' => 'Login successful',
-                'access_token' => $token, // Access token
-                'refresh_token' => $refreshToken // Refresh token
-            ]);
-            setcookie(
-                'refresh_token',   // Cookie name
-                $refreshToken,     // Cookie value
-                [
-                    'expires' => time() + (7 * 24 * 60 * 60), // Expiration time
-                    'path' => '/',                           
-                    'domain' => 'localhost',                  // Match domain
-                    'secure' => false,                       
-                    'httponly' => true,                       
-                    'samesite' => 'Lax',                      // Allow cross-origin
-                ]
-            );
-            http_response_code(200);
         } else {
             http_response_code(403);
             echo json_encode(['error' => 'Verify your email']);
         }
+        http_response_code(200);
+        echo json_encode([
+            'message' => 'Login successful',
+            'access_token' => $token, // Access token
+            'refresh_token' => $refreshToken // Refresh token
+        ]);
+        setcookie(
+            'refresh_token',   // Cookie name
+            $refreshToken,     // Cookie value
+            [
+                'expires' => time() + (7 * 24 * 60 * 60), // Expiration time
+                'path' => '/',
+                'domain' => 'localhost',                  // Match domain
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Lax',                      // Allow cross-origin
+            ]
+        );
+        http_response_code(200);
     } else {
         http_response_code(404);
         echo json_encode(['error' => 'User not found']);
     }
 } catch (PDOException $ex) {
     http_response_code(500);
-    echo json_encode(['error' => $ex->getMessage()]);
+    echo json_encode(['error' => 'database error']);
 }
 

@@ -13,12 +13,12 @@ include __DIR__ . '/../database/dbConnection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve input data
-    $product_name = $_POST['product_name'] ?? '';
-    $catagory = $_POST['category'] ?? '';
-    $old_price = $_POST['old_price'] ?? '';
-    $new_price = $_POST['new_price'] ?? '';
-    $details = $_POST['details'] ?? '';
-    $description = $_POST['description'] ?? '';
+    $product_name = htmlspecialchars(strip_tags($_POST['product_name'] ?? ''));
+    $catagory = htmlspecialchars(strip_tags($_POST['category'] ?? ''));
+    $old_price = htmlspecialchars(strip_tags($_POST['old_price'] ?? ''));
+    $new_price = htmlspecialchars(strip_tags($_POST['new_price'] ?? ''));
+    $details = htmlspecialchars(strip_tags($_POST['details'] ?? ''));
+    $description = htmlspecialchars(strip_tags($_POST['description'] ?? ''));
     $image = $_FILES['image'] ?? null;
 
     // Validate required fields
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($image) {
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxImageSize = 1024 * 1024 * 5; // 5MB
         $uploadDir = __DIR__ . '/../uploads/';
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
         try {
-            $stmt = $con->prepare("INSERT INTO `products` (`product_name`, `catagory`,
+            $stmt = $con->prepare("INSERT INTO `products` (`product_name`, `category`,
             `old_price`, `new_price`, `details`, `description`, `image`)
             values (:product_name, :catagory, :old_price,
             :new_price, :details, :description, :image)");
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':new_price', $new_price, PDO::PARAM_INT);
             $stmt->bindParam(':details', $details , PDO::PARAM_STR);
             $stmt->bindParam(':description', $description, PDO::PARAM_STR);
-            $stmt->bindParam('image', $targetFilePath, PDO::PARAM_STR);
+            $stmt->bindParam('image', $targetFileName, PDO::PARAM_STR);
             $stmt->execute();
 
             http_response_code(201);
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'Database error: '. $e->getMessage()]);
+            echo json_encode(['error' => 'Database error']);
             exit();
         }
 }

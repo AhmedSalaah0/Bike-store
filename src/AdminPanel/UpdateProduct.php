@@ -43,11 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate required fields
     if (!$product_name || !$product_id || !$catagory || !$old_price || !$new_price || !$details || !$description) {
-        echo json_encode([
-            'values' => "product_id: $product_id\n product_name: $product_name\n catagory: $catagory \n old_price: $old_price \n new_price: $new_price \n 
-        details: $details \n description: $description"
-        ]);
-
         http_response_code(400);
         echo json_encode(['error' => 'All fields are required']);
         exit();
@@ -113,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $con->prepare(
             'UPDATE products 
             SET product_name = :product_name, 
-                catagory = :catagory, 
+                category = :category, 
                 old_price = :old_price, 
                 new_price = :new_price, 
                 details = :details, 
@@ -123,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         $stmt->bindParam(':product_name', $product_name, PDO::PARAM_STR);
-        $stmt->bindParam(':catagory', $catagory, PDO::PARAM_STR);
+        $stmt->bindParam(':category', $category, PDO::PARAM_STR);
         $stmt->bindParam(':old_price', $old_price, PDO::PARAM_STR);
         $stmt->bindParam(':new_price', $new_price, PDO::PARAM_STR);
         $stmt->bindParam(':details', $details, PDO::PARAM_STR);

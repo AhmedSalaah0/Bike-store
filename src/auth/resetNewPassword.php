@@ -14,18 +14,21 @@ include __DIR__ . '/../database/dbConnection.php';
 $inputData = file_get_contents('php://input');
 $userData = json_decode($inputData, true);
 
-if ($userData['password'] != $userData['password2']) {
+$password = htmlspecialchars(strip_tags($userData['password']));
+$password2 = htmlspecialchars(strip_tags($userData['password2']));
+$email = htmlspecialchars(strip_tags($userData['email']));
+if ($password != $password2) {
     echo json_encode(['error' => 'Passwords do not match']);
     exit();
 }
 
-if (strlen($userData['password']) < 8) {
+if (strlen($password) < 8) {
     echo json_encode(['error' => 'Password must be at least 8 characters long']);
     exit();
 }
 
 try {
-    $email = $userData['email'] ?? null;
+    $email = $email ?? null;
     if (!$email) {
         echo json_encode(['error' => 'No email found']);
         exit();
@@ -37,7 +40,7 @@ try {
     $cutomer_id = $user['customer_id'];
 
 
-    $hashedPassword = password_hash($userData['password'], PASSWORD_DEFAULT);
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
 
     $stmt = $con->prepare("UPDATE customers SET password = :password WHERE customer_id = :id");
@@ -46,14 +49,14 @@ try {
     $stmt->execute();
 
 
-    $stmt = $con->prepare("Delete from forget_password WHERE customer_id = :id");
+    $stmt = $con->prepare("DELETE fROM forget_password WHERE customer_id = :id");
     $stmt->bindParam(":id", $cutomer_id, PDO::PARAM_INT);
     $stmt->execute();
 
     echo json_encode(['success' => 'Password updated successfully']);
     exit();
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Database error', 'details' => $e->getMessage()]);
+    echo json_encode(['error' => 'database error']);
     exit();
 }
 

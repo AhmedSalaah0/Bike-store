@@ -21,22 +21,27 @@ if (!$UserData) {
     exit();
 }
 
-$UserEmail = $UserData['email'];
+$UserEmail = htmlspecialchars(strip_tags($UserData['email']));
 
-$stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
-$stmt->bindParam(':email', $UserEmail, PDO::PARAM_STR);
-$stmt->execute();
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$user) {
-    http_response_code(404);
-    echo json_encode(['error' => 'User not found']);
-    exit();
-} else {
-    $OTP = rand(100000, 999999);
-    $stmt = $con->prepare('INSERT INTO forget_password (customer_id, OTP) VALUES (:customer_id, :otp)');
-    $stmt->bindParam(':otp', $OTP, PDO::PARAM_INT);
-    $stmt->bindParam(':customer_id', $user['customer_id'], PDO::PARAM_INT);
+try {
+    $stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
+    $stmt->bindParam(':email', $UserEmail, PDO::PARAM_STR);
     $stmt->execute();
-    sendVerificationEmail($UserEmail, $user['first_name'], $user['last_name'], $OTP);
-    exit();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$user) {
+        http_response_code(404);
+        echo json_encode(['error' => 'User not found']);
+        exit();
+    } else {
+        $OTP = rand(100000, 999999);
+        $stmt = $con->prepare('INSERT INTO forget_password (customer_id, OTP) VALUES (:customer_id, :otp)');
+        $stmt->bindParam(':otp', $OTP, PDO::PARAM_INT);
+        $stmt->bindParam(':customer_id', $user['customer_id'], PDO::PARAM_INT);
+        $stmt->execute();
+        sendVerificationEmail($UserEmail, $user['first_name'], $user['last_name'], $OTP);
+        exit();
+    }
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'database error']);
 }

@@ -38,7 +38,6 @@ if (!preg_match('/^[0-9]{11}$/', $phone_number)) {
 }
 
 if (!$first_name || !$last_name || !$email || !$password || !$phone_number) {
-    //throw new Exception(json_encode(["error" => "Data is not Completed"]));
     echo json_encode(['error' => 'Invalid Data']);
     http_response_code(400);
     exit();
@@ -94,6 +93,6 @@ try {
     }
 } catch (PDOException $EX) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database error: ' . $EX->getMessage()]);
+    echo json_encode(['error' => 'database error']);
     exit();
 }
