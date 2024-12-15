@@ -4,8 +4,6 @@ header('Content-Type: application/json');
 include __DIR__ . '/../database/dbConnection.php';
 include __DIR__ . '/../auth/JWTHandler.php';
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 $inputData = file_get_contents('php://input');
 
@@ -87,6 +85,6 @@ try {
     $stmt->execute();
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'database error'. $e->getMessage()]);
+    echo json_encode(['error' => 'database error']);
     exit();
 }

@@ -74,8 +74,6 @@ try {
     exit();
 }
 
-
-
 try {
     // query to get the current quantity (stock) of the product
     $stmt = $con->prepare("SELECT stock FROM products WHERE product_id = :product_id");
@@ -130,5 +128,7 @@ try {
     http_response_code(200);
 } catch (PDOException $e) {
     http_response_code(500);
+
     echo json_encode(["error" => "database error"]);
+
 }

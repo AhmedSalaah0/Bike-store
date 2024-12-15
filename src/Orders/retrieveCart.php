@@ -49,7 +49,6 @@ try {
     $stmt->execute();
 
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     // fetching a column using array_column method to return all products and its quantity in cart
     $cartItems = array_map(function ($row) {
         return [
