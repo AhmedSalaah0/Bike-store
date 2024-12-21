@@ -38,7 +38,7 @@ try {
         $stmt->bindParam(':otp', $OTP, PDO::PARAM_INT);
         $stmt->bindParam(':customer_id', $user['customer_id'], PDO::PARAM_INT);
         $stmt->execute();
-        sendVerificationEmail($UserEmail, $user['first_name'], $user['last_name'], $OTP);
+        sendVerificationEmail($UserEmail, $user['first_name'], $user['last_name'], 'OTP_mail',$OTP);
         exit();
     }
 } catch (PDOException $e) {

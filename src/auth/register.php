@@ -88,7 +88,7 @@ try {
         $stmt->bindParam(':verification_token', $token, PDO::PARAM_STR);
         
         require __DIR__ . '/../smtp/sendEmail.php';
-        sendVerificationEmail($email, $first_name, $last_name, $verification_link);
+        sendVerificationEmail($email, $first_name, $last_name, 'Verification_mail',$verification_link);
         $stmt->execute();
 
         http_response_code(201);
