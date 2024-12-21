@@ -10,17 +10,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include __DIR__ . "/../database/dbConnection.php";
+include __DIR__ . '/../auth/JWTHandler.php';
 
 $inputData = file_get_contents('php://input');
 
 $data = json_decode($inputData, true);
 
-$customer_id = htmlspecialchars(strip_tags($data['customer_id']));
+$JWT = $Data['token'] ?? '';
+
 $name = htmlspecialchars(strip_tags($data['name']));
 $personal_interest = htmlspecialchars(strip_tags($data['personal_interest']));
 $comment = htmlspecialchars(strip_tags($data['comment']));
 $rating = htmlspecialchars(strip_tags($data['rating']));
 
+if (!empty($JWT)) {
+    try {
+        $handler = new JwtHandler();
+        $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
+        $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
+        $customer_id = $userData->data->user_id;
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+        exit();
+    }
+}
 try {
     $stmt = $con->prepare("INSERT INTO feedback (customer_id, name, personal_interest, comment, rating) 
                                   VALUES (:customer_id, :name, :personal_interest, :comment, :rating)");
