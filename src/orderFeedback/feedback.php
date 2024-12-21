@@ -27,7 +27,7 @@ $recommend_rate = htmlspecialchars(strip_tags($data['recommend_rate']));
 $message = htmlspecialchars(strip_tags($data['message']));
 
 try {
-    $stmt = $con->prepare("INSERT INTO feedback (customer_id, product_id, quality_rate, fair_price, smooth_purchase, purchase_problems, smooth_delivery, delivery_problems, recommend_rate, message) 
+    $stmt = $con->prepare("INSERT INTO order_feedback (customer_id, product_id, quality_rate, fair_price, smooth_purchase, purchase_problems, smooth_delivery, delivery_problems, recommend_rate, message) 
                               VALUES (:customer_id, :product_id, :quality_rate, :fair_price, :smooth_purchase, :purchase_problems, :smooth_delivery, :delivery_problems, :recommend_rate, :message)");
 
     $stmt->bindParam(":customer_id", $customer_id, PDO::PARAM_INT);
