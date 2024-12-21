@@ -15,7 +15,7 @@ include __DIR__ . '/../auth/JWTHandler.php';
 $inputData = file_get_contents('php://input');
 
 $userData = json_decode($inputData, true);
-$JWT = $userData['token'];
+$JWT = $userData['token'] ?? '';
 
 if (!empty($JWT)) {
     try {

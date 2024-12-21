@@ -74,6 +74,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
         try {
+            $stmt = $conn->prepare('SELECT * from products where `product_name` = :product_name');
+            $stmt->bind_param('product_name', $product_name);
+            $stmt->execute();
+            $product = $stmt->fetchAll();
+            if ($product)
+            {
+                http_response_code(400);
+                echo json_encode(['error' => 'Product already exists Go For Update To Add Stock']);
+                exit();
+            }
+
+
             $stmt = $con->prepare("INSERT INTO `products` (`product_name`, `category`,
             `old_price`, `new_price`, `details`, `description`, `image`)
             values (:product_name, :catagory, :old_price,

@@ -24,11 +24,9 @@ $allowed_routes = [
     'auth/resetnewpassword' => 'auth/resetNewPassword.php',
 ];
 
-// Check if the requested route exists in the map
 if (array_key_exists($request, $allowed_routes)) {
     $file_to_include = __DIR__ . '/' . $allowed_routes[$request];
     
-    // Ensure the file exists to avoid errors
     if (file_exists($file_to_include)) {
         require $file_to_include;
     } else {

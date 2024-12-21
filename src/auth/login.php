@@ -10,9 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include __DIR__ . "/../database/dbConnection.php";
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-require_once __DIR__ . "/JWTHandler.php";
+require_once __DIR__ . "/JWTHandler.php"; 
 
 
 if ($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded') {
@@ -73,6 +71,8 @@ try {
         $userData = [
             'user_id' => $user['Admin_id'],
             'email' => $user['email'],
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name'],
             'is_admin' => $is_admin,
         ];
     } else {
@@ -84,7 +84,8 @@ try {
             $userData = [
                 'user_id' => $user['customer_id'],
                 'email' => $user['email'],
-                'name' => $user['first_name'] . ' ' . $user['last_name'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
                 'is_admin' => $is_admin,
             ];
         }
@@ -115,6 +116,7 @@ try {
             'access_token' => $token, // Access token
             'refresh_token' => $refreshToken // Refresh token
         ]);
+        
         setcookie(
             'refresh_token',   // Cookie name
             $refreshToken,     // Cookie value

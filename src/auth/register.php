@@ -31,15 +31,15 @@ else {
     $phone_number = htmlspecialchars(strip_tags($UserData['phone_number'] ?? ''));
 }
 
-if (!preg_match('/^[0-9]{11}$/', $phone_number)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid Phone Number']);
-    exit();
-}
-
 if (!$first_name || !$last_name || !$email || !$password || !$phone_number) {
     echo json_encode(['error' => 'Invalid Data']);
     http_response_code(400);
+    exit();
+}
+
+if (!preg_match('/^[0-9]{11}$/', $phone_number)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid Phone Number']);
     exit();
 }
 
@@ -61,6 +61,8 @@ if (strlen($password) < 8) {
     exit(); 
 }
 
+
+
 try {
     $stmt = $con->prepare("SELECT * FROM customers WHERE email = :email");
     $stmt->bindParam(':email', $email, PDO::PARAM_STR);
@@ -76,13 +78,15 @@ try {
         include __DIR__ .'/generateToken.php';
         $token = $verification_token;
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $con->prepare("INSERT INTO customers (first_name, last_name, email, password, phone_number, verification_token) VALUES (:first_name,:last_name, :email, :password, :phone_number, :verification_token)");
+        $stmt = $con->prepare("INSERT INTO customers (first_name, last_name, email, password, phone_number, verification_token) 
+        VALUES (:first_name,:last_name, :email, :password, :phone_number, :verification_token)");
         $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
         $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
         $stmt->bindParam(':phone_number', $phone_number, PDO::PARAM_STR);
         $stmt->bindParam(':verification_token', $token, PDO::PARAM_STR);
+        
         require __DIR__ . '/../smtp/sendEmail.php';
         sendVerificationEmail($email, $first_name, $last_name, $verification_link);
         $stmt->execute();

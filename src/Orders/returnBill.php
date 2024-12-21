@@ -10,12 +10,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include __DIR__ . "/../database/dbConnection.php";
+include __DIR__ . "/../auth/JWTHandler.php";
 
 $inputData = file_get_contents('php://input');
 
 $userData = json_decode($inputData, true);
-
-$customer_id = htmlspecialchars(strip_tags($userData['customer_id']));
+$JWT = $userData['token'] ?? '';
+if (!empty($JWT)) {
+    try {
+        $handler = new JwtHandler();
+        $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
+        $customer_id = $decoded->data->user_id;
+        if ($decoded->data->is_admin == true) {
+            http_response_code(404);
+            echo json_encode(['error' => 'User Is Administrator']);
+            exit();
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+        exit();
+    }
+}
 
 // get cart_id of the customer
 try {
@@ -50,7 +66,11 @@ try {
         $total += $row['new_price'] * $row['quantity'];
     
     http_response_code(200);
-    echo json_encode(["total_price" => $total]);
+    echo json_encode([
+        "Subtotal" => $total,
+        "Shipping" => 50,
+        "Total" => $total + 50
+    ]);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'database error: ' . $e->getMessage()]);

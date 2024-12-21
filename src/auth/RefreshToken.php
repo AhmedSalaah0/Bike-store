@@ -36,6 +36,7 @@ if ($refreshToken) {
         echo json_encode([
             'access_token' => $accessToken
         ]);
+        exit();
     } catch (Exception $e) {
         http_response_code(401);
         echo json_encode(['error' => 'Invalid or expired refresh token']);
@@ -43,4 +44,5 @@ if ($refreshToken) {
 } else {
     http_response_code(401);
     echo json_encode(['error' => 'No refresh token provided']);
+    exit();
 }

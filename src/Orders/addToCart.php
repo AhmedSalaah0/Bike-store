@@ -21,6 +21,7 @@ $userData = json_decode($inputData, true);
 $JWT = $userData['token'] ?? '';
 $product_id = htmlspecialchars(strip_tags($userData['product_id'] ?? ''));
 $quantity = htmlspecialchars(strip_tags($userData['quantity'] ?? ''));
+
 if (!$product_id) {
     http_response_code(400);
     echo json_encode(['error' => 'Product_id Is Required']);

@@ -16,7 +16,7 @@ $userData = json_decode($inputData, true);
 
 $password = htmlspecialchars(strip_tags($userData['password']));
 $password2 = htmlspecialchars(strip_tags($userData['password2']));
-$email = htmlspecialchars(strip_tags($userData['email']));
+$email = htmlspecialchars(strip_tags($userData['email']) ?? '');
 if ($password != $password2) {
     echo json_encode(['error' => 'Passwords do not match']);
     exit();
@@ -28,7 +28,6 @@ if (strlen($password) < 8) {
 }
 
 try {
-    $email = $email ?? null;
     if (!$email) {
         echo json_encode(['error' => 'No email found']);
         exit();
@@ -47,12 +46,6 @@ try {
     $stmt->bindParam(":password", $hashedPassword, PDO::PARAM_STR);
     $stmt->bindParam(":id", $cutomer_id, PDO::PARAM_STR);
     $stmt->execute();
-
-
-    $stmt = $con->prepare("DELETE fROM forget_password WHERE customer_id = :id");
-    $stmt->bindParam(":id", $cutomer_id, PDO::PARAM_INT);
-    $stmt->execute();
-
     echo json_encode(['success' => 'Password updated successfully']);
     exit();
 } catch (PDOException $e) {

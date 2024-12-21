@@ -9,10 +9,11 @@ $inputData = file_get_contents('php://input');
 
 $Data = json_decode($inputData, true);
 
-$JWT = $Data['token'];
+$JWT = $Data['token'] ?? '';
 $order_date = date("Y-m-d");
 $address = $Data['address'] ?? '';
 $payment_method = $Data['payment_method'] ?? '';
+
 if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
