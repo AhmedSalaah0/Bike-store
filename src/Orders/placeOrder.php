@@ -18,8 +18,7 @@ if (!empty($JWT)) {
     try {
         $handler = new JwtHandler();
         $decoded = $handler->verifyToken($JWT, $_ENV['JWT_SECRET']);
-        $userData = JWT::decode($JWT, new Key($_ENV['JWT_SECRET'], 'HS256'));
-        $customer_id = $userData->data->user_id;
+        $customer_id = $decoded->data->user_id;
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['error' => $e->getMessage()]);
