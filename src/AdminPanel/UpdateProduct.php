@@ -19,22 +19,21 @@ if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
         echo json_encode(['error' => 'Invalid data format']);
         exit();
     }
-
-    $product_id = htmlspecialchars(strip_tags($Data['product_id'] ?? ''));
-    $product_name = htmlspecialchars(strip_tags($Data['product_name'] ?? ''));
-    $type = htmlspecialchars(strip_tags($Data['type'] ?? ''));
-    $old_price = htmlspecialchars(strip_tags($Data['old_price'] ?? ''));
-    $new_price = htmlspecialchars(strip_tags($Data['new_price'] ?? ''));
-    $details = htmlspecialchars(strip_tags($Data['details'] ?? ''));
-    $description = htmlspecialchars(strip_tags($Data['description'] ?? ''));
-    $image = $Data['image'] ?? '';
+    // $product_id = htmlspecialchars(strip_tags($Data['product_id'] ?? ''));
+    // $product_name = htmlspecialchars(strip_tags($Data['product_name'] ?? ''));
+    // $type = htmlspecialchars(strip_tags($Data['type'] ?? ''));
+    // $old_price = htmlspecialchars(strip_tags($Data['old_price'] ?? ''));
+    // $new_price = htmlspecialchars(strip_tags($Data['new_price'] ?? ''));
+    // $details = htmlspecialchars(strip_tags($Data['details'] ?? ''));
+    // $description = htmlspecialchars(strip_tags($Data['description'] ?? ''));
+    // $image = $Data['image'] ?? '';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve input data
     $product_id = htmlspecialchars(strip_tags($_POST['product_id'] ?? ''));
     $product_name = htmlspecialchars(strip_tags($_POST['product_name'] ?? ''));
-    $catagory = htmlspecialchars(strip_tags($_POST['category'] ?? ''));
+    $category = htmlspecialchars(strip_tags($_POST['category'] ?? ''));
     $old_price = htmlspecialchars(strip_tags($_POST['old_price'] ?? ''));
     $new_price = htmlspecialchars(strip_tags($_POST['new_price'] ?? ''));
     $details = htmlspecialchars(strip_tags($_POST['details'] ?? ''));
@@ -42,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $image = $_FILES['image'] ?? null;
 
     // Validate required fields
-    if (!$product_name || !$product_id || !$catagory || !$old_price || !$new_price || !$details || !$description) {
+    if (!$product_name || !$product_id || !$category || !$old_price || !$new_price || !$details || !$description) {
         http_response_code(400);
         echo json_encode(['error' => 'All fields are required']);
         exit();
@@ -78,17 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['error' => 'Image size exceeds the maximum limit']);
             exit();
         }
-
-        // Generate a unique file name and move the file
-        $fileExtension = pathinfo($image['name'], PATHINFO_EXTENSION);
-        $targetFileName = uniqid() . '.' . $fileExtension;
-        $targetFilePath = "$uploadDir$targetFileName";
-
-        if (!move_uploaded_file($image['tmp_name'], $targetFilePath)) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Failed to save uploaded file']);
-            exit();
-        }
     }
 
     try {
@@ -102,6 +90,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             http_response_code(404);
             echo json_encode(['error' => 'Product not found']);
             exit();
+        }
+
+        if ($product['image'])
+        {
+            // Delete existing image
+            unlink( $uploadDir . $product['image']);
+            // Generate a unique file name and move the file
+            $fileExtension = pathinfo($image['name'], PATHINFO_EXTENSION);
+            $targetFileName = uniqid() . '.' . $fileExtension;
+            $targetFilePath = "$uploadDir$targetFileName";
+
+            if (!move_uploaded_file($image['tmp_name'], $targetFilePath)) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to save uploaded file']);
+                exit();
+            }
         }
 
         // Update product details
@@ -123,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':new_price', $new_price, PDO::PARAM_STR);
         $stmt->bindParam(':details', $details, PDO::PARAM_STR);
         $stmt->bindParam(':description', $description, PDO::PARAM_STR);
-        $stmt->bindParam(':image', $targetFilePath, PDO::PARAM_STR);
+        $stmt->bindParam(':image', $targetFileName, PDO::PARAM_STR);
         $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
         $stmt->execute();
 

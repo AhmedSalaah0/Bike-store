@@ -74,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
         try {
-            $stmt = $conn->prepare('SELECT * from products where `product_name` = :product_name');
-            $stmt->bind_param('product_name', $product_name);
+            $stmt = $con->prepare('SELECT * from products where `product_name` = :product_name');
+            $stmt->bindParam('product_name', $product_name);
             $stmt->execute();
             $product = $stmt->fetchAll();
             if ($product)

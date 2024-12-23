@@ -32,7 +32,7 @@ try {
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$result) {
-        http_response_code(404);
+        http_response_code(response_code: 404);
         echo json_encode(['error' => 'Product not found']);
         exit();
     }
